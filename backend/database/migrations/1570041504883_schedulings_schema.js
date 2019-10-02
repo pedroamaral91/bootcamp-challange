@@ -16,6 +16,15 @@ class SchedulingsSchema extends Schema {
         .references('id')
         .inTable('meetups')
         .onDelete('SET NULL')
+      table
+        .integer('user_id')
+        .unsigned()
+        .index()
+      table
+        .foreign('user_id')
+        .references('id')
+        .inTable('users')
+        .onDelete('SET NULL')
       table.timestamps()
     })
   }

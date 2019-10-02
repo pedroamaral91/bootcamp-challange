@@ -4,90 +4,68 @@
 /** @typedef {import('@adonisjs/framework/src/Response')} Response */
 /** @typedef {import('@adonisjs/framework/src/View')} View */
 
+/** @type {typeof import('@adonisjs/lucid/src/Lucid/Model')} */
+const Meetup = use('App/Models/Meetup')
 /**
  * Resourceful controller for interacting with schedulings
  */
 class SchedulingController {
   /**
-   * Show a list of all schedulings.
-   * GET schedulings
-   *
    * @param {object} ctx
    * @param {Request} ctx.request
    * @param {Response} ctx.response
    * @param {View} ctx.view
    */
-  async index ({ request, response, view }) {
+  async index({ request, response, view }) {}
+
+  /**
+   * @param {object} ctx
+   * @param {Request} ctx.request
+   * @param {Response} ctx.response
+   */
+  async store({ request, response, auth }) {
+    try {
+      const user = await auth.getUser()
+      const { meetup_id } = request.all()
+
+      const meetup = await Meetup.findOrFail(meetup_id)
+      if (meetup.user_id === user.id) {
+        throw new Error(
+          'Não é possível o organizador se inscrever no próprio evento.'
+        )
+      }
+      await meetup
+        .scheduling()
+        .create({ meetup_id: meetup.id, user_id: user.id })
+      return response
+        .status(201)
+        .send({ message: 'Inscrição realizada com sucesso!' })
+    } catch (err) {
+      return response.status(400).send({ error: err.message })
+    }
   }
 
   /**
-   * Render a form to be used for creating a new scheduling.
-   * GET schedulings/create
-   *
    * @param {object} ctx
    * @param {Request} ctx.request
    * @param {Response} ctx.response
    * @param {View} ctx.view
    */
-  async create ({ request, response, view }) {
-  }
+  async show({ params, request, response, view }) {}
 
   /**
-   * Create/save a new scheduling.
-   * POST schedulings
-   *
    * @param {object} ctx
    * @param {Request} ctx.request
    * @param {Response} ctx.response
    */
-  async store ({ request, response }) {
-  }
+  async update({ params, request, response }) {}
 
   /**
-   * Display a single scheduling.
-   * GET schedulings/:id
-   *
-   * @param {object} ctx
-   * @param {Request} ctx.request
-   * @param {Response} ctx.response
-   * @param {View} ctx.view
-   */
-  async show ({ params, request, response, view }) {
-  }
-
-  /**
-   * Render a form to update an existing scheduling.
-   * GET schedulings/:id/edit
-   *
-   * @param {object} ctx
-   * @param {Request} ctx.request
-   * @param {Response} ctx.response
-   * @param {View} ctx.view
-   */
-  async edit ({ params, request, response, view }) {
-  }
-
-  /**
-   * Update scheduling details.
-   * PUT or PATCH schedulings/:id
-   *
    * @param {object} ctx
    * @param {Request} ctx.request
    * @param {Response} ctx.response
    */
-  async update ({ params, request, response }) {
-  }
-
-  /**
-   * Delete a scheduling with id.
-   * DELETE schedulings/:id
-   *
-   * @param {object} ctx
-   * @param {Request} ctx.request
-   * @param {Response} ctx.response
-   */
-  async destroy ({ params, request, response }) {
-  }
+  async destroy({ params, request, response }) {}
 }
 
 module.exports = SchedulingController

@@ -28,11 +28,10 @@ Route.put('/files/:id', 'FileController.update').middleware(['auth'])
 Route.post('/meetup', 'MeetupController.store')
   .validator('Meetup/Store')
   .middleware(['auth'])
-
 Route.put('/meetup/:id', 'MeetupController.update')
   .validator('Meetup/Update')
   .middleware(['auth'])
-
 Route.delete('/meetup/:id', 'MeetupController.destroy').middleware(['auth'])
-
 Route.get('/meetup/:userId', 'MeetupController.show').middleware(['auth'])
+
+Route.post('/scheduling', 'SchedulingController.store').middleware(['auth'])

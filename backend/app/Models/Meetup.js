@@ -4,6 +4,9 @@
 const Model = use('Model')
 
 class Meetup extends Model {
+  scheduling() {
+    return this.hasOne('App/Models/Scheduling')
+  }
 }
 
 module.exports = Meetup

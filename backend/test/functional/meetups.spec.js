@@ -24,7 +24,7 @@ const payload = {
   file_id: 1,
 }
 
-test('should register an meetup', async ({ client, user }) => {
+test('should user be able to register a meetup', async ({ client, user }) => {
   const response = await client
     .post('/meetup')
     .loginVia(user, 'jwt')
@@ -52,15 +52,16 @@ test('should register fail if date is lower than now', async ({
   response.assertStatus(422)
 })
 
-test('should update meetup', async ({ client, user, assert }) => {
+test('should update meetup', async ({ client, assert, user }) => {
   await Factory.model('App/Models/File').create()
-  const meetup = await Factory.model('App/Models/Meetup').create()
+  const meetup = await Factory.model('App/Models/Meetup').create({
+    user_id: user.id,
+  })
   const response = await client
     .put('/meetup/1')
     .loginVia(user, 'jwt')
     .send(payload)
     .end()
-
   response.assertStatus(204)
   const oldMeetup = meetup.toJSON()
   await meetup.reload()
@@ -73,7 +74,7 @@ test('should update fail if user is not owner of the meetup', async ({
 }) => {
   await Factory.model('App/Models/File').create()
   const newUser = await Factory.model('App/Models/User').create()
-  const meetup = await Factory.model('App/Models/Meetup').create({
+  await Factory.model('App/Models/Meetup').create({
     user_id: newUser.id,
   })
   const response = await client
@@ -81,14 +82,13 @@ test('should update fail if user is not owner of the meetup', async ({
     .loginVia(user, 'jwt')
     .send(payload)
     .end()
-
   response.assertStatus(400)
 })
 
 test('should list meetup just for user owner', async ({
   client,
-  user,
   assert,
+  user,
 }) => {
   await Factory.model('App/Models/File').create()
   await Factory.model('App/Models/Meetup').createMany(3)
@@ -105,10 +105,9 @@ test('should list meetup just for user owner', async ({
 test('should delete fail if date is higher than today', async ({
   client,
   user,
-  assert,
 }) => {
   await Factory.model('App/Models/File').create()
-  await Factory.model('App/Models/Meetup').create()
+  await Factory.model('App/Models/Meetup').create({ user_id: user.id })
   const response = await client
     .delete('/meetup/1')
     .loginVia(user, 'jwt')
@@ -119,10 +118,11 @@ test('should delete fail if date is higher than today', async ({
   })
 })
 
-test('should delete meetup', async ({ client, assert, user }) => {
+test('should delete meetup', async ({ client, user }) => {
   await Factory.model('App/Models/File').create()
   await Factory.model('App/Models/Meetup').create({
     date: addDays(new Date(), 5),
+    user_id: user.id,
   })
   const response = await client
     .delete('/meetup/1')
