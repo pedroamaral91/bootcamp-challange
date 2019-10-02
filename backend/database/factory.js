@@ -21,3 +21,24 @@ Factory.blueprint('App/Models/User', async faker => {
     password: 'secret',
   }
 })
+
+Factory.blueprint('App/Models/File', async faker => {
+  return {
+    file: faker.name(),
+    name: 'teste.jpg',
+    type: 'jpg',
+    subType: 'jpg',
+  }
+})
+
+Factory.blueprint('App/Models/Meetup', async (faker, i, data) => {
+  return {
+    title: faker.word({ length: 5 }),
+    description: faker.sentence(),
+    localization: faker.string(),
+    date: Date.now(),
+    user_id: 1,
+    file_id: 1,
+    ...data,
+  }
+})

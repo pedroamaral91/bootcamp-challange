@@ -1,10 +1,13 @@
 'use strict'
 
 const { test, trait } = use('Test/Suite')('Session')
+
 /** @type {import('@adonisjs/lucid/src/Factory')} */
 const Factory = use('Factory')
 
 trait('Test/ApiClient')
+trait('DatabaseTransactions')
+trait('Auth/Client')
 
 test('should generate a token with id user in payload', async ({ client }) => {
   const { email } = await Factory.model('App/Models/User').create()
