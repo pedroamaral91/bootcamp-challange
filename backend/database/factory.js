@@ -13,6 +13,7 @@
 
 /** @type {import('@adonisjs/lucid/src/Factory')} */
 const Factory = use('Factory')
+const { format } = use('date-fns')
 
 Factory.blueprint('App/Models/User', async faker => {
   return {
@@ -36,9 +37,17 @@ Factory.blueprint('App/Models/Meetup', async (faker, i, data) => {
     title: faker.word({ length: 5 }),
     description: faker.sentence(),
     localization: faker.string(),
-    date: Date.now(),
+    date: format(new Date(), 'yyyy-MM-dd HH:mm:ss'),
     user_id: 1,
     file_id: 1,
+    ...data,
+  }
+})
+
+Factory.blueprint('App/Models/Scheduling', async (faker, i, data) => {
+  return {
+    user_id: 1,
+    meetup_id: 1,
     ...data,
   }
 })

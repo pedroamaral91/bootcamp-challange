@@ -35,3 +35,4 @@ Route.delete('/meetup/:id', 'MeetupController.destroy').middleware(['auth'])
 Route.get('/meetup/:userId', 'MeetupController.show').middleware(['auth'])
 
 Route.post('/scheduling', 'SchedulingController.store').middleware(['auth'])
+Route.get('/scheduling', 'SchedulingController.index').middleware(['auth'])

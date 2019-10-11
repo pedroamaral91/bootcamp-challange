@@ -3,16 +3,11 @@
 /** @type {import('@adonisjs/lucid/src/Factory')} */
 const Factory = use('Factory')
 const { test, trait } = use('Test/Suite')('Meetups')
-const { addDays, subDays } = require('date-fns')
+const { addDays, subDays, format } = require('date-fns')
 
 trait('Test/ApiClient')
 trait('DatabaseTransactions')
 trait('Auth/Client')
-
-trait(async suite => {
-  const user = await Factory.model('App/Models/User').create()
-  suite.Context.getter('user', () => user)
-})
 
 const payload = {
   title: 'Vencendo a síndrome do impostor',
@@ -24,7 +19,8 @@ const payload = {
   file_id: 1,
 }
 
-test('should user be able to register a meetup', async ({ client, user }) => {
+test('should user be able to register a meetup', async ({ client }) => {
+  const user = await Factory.model('App/Models/User').create()
   const response = await client
     .post('/meetup')
     .loginVia(user, 'jwt')
@@ -34,15 +30,12 @@ test('should user be able to register a meetup', async ({ client, user }) => {
   response.assertJSON({
     message: 'Dados cadastrados com sucesso!',
   })
-})
+}).timeout(3000)
 
-test('should register fail if date is lower than now', async ({
-  client,
-  user,
-}) => {
+test('should register fail if date is lower than now', async ({ client }) => {
+  const user = await Factory.model('App/Models/User').create()
   const date = subDays(Date.now(), 3)
   const paylodWithWrongDate = { ...payload, date }
-
   const response = await client
     .post('/meetup')
     .loginVia(user, 'jwt')
@@ -52,7 +45,8 @@ test('should register fail if date is lower than now', async ({
   response.assertStatus(422)
 })
 
-test('should update meetup', async ({ client, assert, user }) => {
+test('should update meetup', async ({ client, assert }) => {
+  const user = await Factory.model('App/Models/User').create()
   await Factory.model('App/Models/File').create()
   const meetup = await Factory.model('App/Models/Meetup').create({
     user_id: user.id,
@@ -70,8 +64,8 @@ test('should update meetup', async ({ client, assert, user }) => {
 
 test('should update fail if user is not owner of the meetup', async ({
   client,
-  user,
 }) => {
+  const user = await Factory.model('App/Models/User').create()
   await Factory.model('App/Models/File').create()
   const newUser = await Factory.model('App/Models/User').create()
   await Factory.model('App/Models/Meetup').create({
@@ -85,11 +79,8 @@ test('should update fail if user is not owner of the meetup', async ({
   response.assertStatus(400)
 })
 
-test('should list meetup just for user owner', async ({
-  client,
-  assert,
-  user,
-}) => {
+test('should list meetup just for user owner', async ({ client, assert }) => {
+  const user = await Factory.model('App/Models/User').create()
   await Factory.model('App/Models/File').create()
   await Factory.model('App/Models/Meetup').createMany(3)
   const response = await client
@@ -102,12 +93,16 @@ test('should list meetup just for user owner', async ({
   })
 })
 
-test('should delete fail if date is higher than today', async ({
+test('should delete fail if meetup has already happened', async ({
   client,
-  user,
 }) => {
+  const user = await Factory.model('App/Models/User').create()
   await Factory.model('App/Models/File').create()
-  await Factory.model('App/Models/Meetup').create({ user_id: user.id })
+  await Factory.model('App/Models/Meetup').create({
+    user_id: user.id,
+    date: format(subDays(new Date(), 1), 'yyyy-MM-dd HH:mm:ss'),
+  })
+
   const response = await client
     .delete('/meetup/1')
     .loginVia(user, 'jwt')
@@ -118,7 +113,8 @@ test('should delete fail if date is higher than today', async ({
   })
 })
 
-test('should delete meetup', async ({ client, user }) => {
+test('should delete meetup', async ({ client }) => {
+  const user = await Factory.model('App/Models/User').create()
   await Factory.model('App/Models/File').create()
   await Factory.model('App/Models/Meetup').create({
     date: addDays(new Date(), 5),

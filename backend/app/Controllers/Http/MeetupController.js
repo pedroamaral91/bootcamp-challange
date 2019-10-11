@@ -5,6 +5,7 @@
 /** @typedef {import('@adonisjs/framework/src/View')} View */
 /** @type {typeof import('@adonisjs/lucid/src/Lucid/Model')} */
 const Meetup = use('App/Models/Meetup')
+const { format, parseISO, isBefore } = use('date-fns')
 
 /**
  * Resourceful controller for interacting with meetups
@@ -16,7 +17,14 @@ class MeetupController {
    * @param {Response} ctx.response
    * @param {View} ctx.view
    */
-  async index({ request, response, view }) {}
+  async index({ request, response }) {
+    const { page } = request.get()
+    const meetups = await Meetup.query()
+      .with('user')
+      .orderBy('date', 'DESC')
+      .paginate(page)
+    return response.status(200).send({ meetups: meetups.toJSON() })
+  }
 
   /**
    * @param {object} ctx
@@ -89,10 +97,11 @@ class MeetupController {
     try {
       const user = await auth.getUser()
       const meetup = await Meetup.findOrFail(params.id)
+      const dateNow = format(new Date(), 'yyyy-MM-dd HH:mm:ss')
       if (meetup.user_id !== user.id) {
         throw new Error('Usuário não é organizador desta meetup')
       }
-      if (meetup.date < new Date()) {
+      if (isBefore(parseISO(meetup.date), parseISO(dateNow))) {
         throw new Error('Meetup já ocorreu')
       }
       await meetup.delete()

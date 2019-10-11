@@ -5,7 +5,13 @@ const Model = use('Model')
 
 class Meetup extends Model {
   scheduling() {
-    return this.hasOne('App/Models/Scheduling')
+    return this.belongsToMany('App/Models/User')
+      .pivotTable('schedulings')
+      .withTimestamps()
+  }
+
+  user() {
+    return this.belongsTo('App/Models/User')
   }
 }
 
